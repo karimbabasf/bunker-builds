@@ -27,7 +27,14 @@ def power(base, exp, n):
 
 def generators(p):
     """Every g in Z_p* whose powers hit all p - 1 elements."""
-    raise NotImplementedError
+    gens = []
+    for g in range(1, p):
+        seen = set()
+        for k in range(1, p):
+            seen.add(power(g, k, p))
+        if len(seen) == p - 1:
+            gens.append(g)
+    return gens
 
 
 if __name__ == "__main__":
