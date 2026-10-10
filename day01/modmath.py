@@ -1,5 +1,7 @@
-# Bunker Day 1: modular arithmetic by hand. No AI.
-
+def gcd(a, b):
+    while b != 0:
+        a, b = b, a%b
+    return a
 
 def egcd(a, b):
     """Return (g, x, y) with a*x + b*y == g == gcd(a, b)."""
