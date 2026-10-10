@@ -10,6 +10,10 @@ def egcd(a, b):
 
 def inverse(a, n):
     """Return a^-1 mod n. Raise ValueError if gcd(a, n) != 1."""
+    for x in range(1, n):
+        if (a * x) % n == 1:
+            return x
+    raise ValueError("no inverse")
     raise NotImplementedError
 
 
