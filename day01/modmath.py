@@ -19,7 +19,10 @@ def inverse(a, n):
 
 def power(base, exp, n):
     """Square and multiply. No pow()."""
-    raise NotImplementedError
+    result = 1
+    for _ in range(exp):
+        result = (result * base) % n
+    return result
 
 
 def generators(p):
