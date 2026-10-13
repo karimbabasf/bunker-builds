@@ -43,7 +43,11 @@ def dh(p, g, a, b):
 
 def brute_dlog(g, h, p):
     """Return (x, steps) with g^x == h mod p, trying x = 0, 1, 2, ..."""
-    # TODO
+    cur = 1
+    for x in range(p - 1):
+        if cur == h:
+            return x, x + 1
+        cur = cur * g % p
 
 
 def bsgs(g, h, p):
