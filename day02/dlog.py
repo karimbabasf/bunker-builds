@@ -20,7 +20,8 @@ SAFE_PRIMES = {
     40: 1099511627339,
 }
 
-# Brute force past this many bits takes hours in Python. Extrapolate instead.
+# Brute force past this many bits takes minutes to days in Python.
+# Above it, brute time is extrapolated from the measured cost per step.
 BRUTE_MAX_BITS = 28
 
 
@@ -73,13 +74,54 @@ def bsgs(g, h, p):
 
 def race(bits):
     """Time both attacks on one prime. Return a row for the table."""
-    # TODO: pick a secret x near the top of the range (worst case),
-    #   h = g^x, time bsgs, time brute only if bits <= BRUTE_MAX_BITS
+    p = SAFE_PRIMES[bits]
+    g = find_generator(p)
+    x = p - 2  # worst case for brute force: the last exponent it tries
+    h = power(g, x, p)
+
+    t0 = time.perf_counter()
+    found, bsgs_steps = bsgs(g, h, p)
+    bsgs_time = time.perf_counter() - t0
+    assert found == x
+
+    if bits <= BRUTE_MAX_BITS:
+        t0 = time.perf_counter()
+        found, brute_steps = brute_dlog(g, h, p)
+        brute_time = time.perf_counter() - t0
+        assert found == x
+        measured = True
+    else:
+        brute_steps = x + 1
+        brute_time = None
+        measured = False
+
+    return {
+        "bits": bits,
+        "bsgs_steps": bsgs_steps,
+        "bsgs_time": bsgs_time,
+        "brute_steps": brute_steps,
+        "brute_time": brute_time,
+        "measured": measured,
+    }
 
 
 def plot(rows):
     """ASCII plot: log2(steps) against bits, one line per attack."""
-    # TODO
+    measured = [r for r in rows if r["measured"]]
+    brute_per_step = sum(r["brute_time"] for r in measured) / sum(r["brute_steps"] for r in measured)
+
+    print("bits  attack  log2(steps), one # per doubling")
+    for r in rows:
+        if r["brute_time"] is None:
+            r["brute_time"] = r["brute_steps"] * brute_per_step
+        brute_note = "" if r["measured"] else " (est)"
+        for name, steps, secs, note in (
+            ("brute", r["brute_steps"], r["brute_time"], brute_note),
+            ("bsgs", r["bsgs_steps"], r["bsgs_time"], ""),
+        ):
+            bar = "#" * round(math.log2(steps))
+            print(f"{r['bits']:>4}  {name:<6}  {bar:<40} {steps:>17,} steps {secs:>12.3f} s{note}")
+        print()
 
 
 if __name__ == "__main__":
@@ -97,5 +139,9 @@ if __name__ == "__main__":
 
     rows = [race(bits) for bits in sorted(SAFE_PRIMES)]
     plot(rows)
-    # TODO: years for secp256k1 = 2^128 steps * (seconds per bsgs step) / seconds per year
+    top = rows[-1]
+    per_step = top["bsgs_time"] / top["bsgs_steps"]
+    years = 2**128 * per_step / (365 * 24 * 3600)
+    print(f"one bsgs step on this laptop: {per_step * 1e9:.0f} ns")
+    print(f"secp256k1 needs about 2^128 steps: {years:.1e} years")
     print("ok")
