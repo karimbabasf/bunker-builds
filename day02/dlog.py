@@ -1,5 +1,6 @@
 """Day 2: Diffie-Hellman, then brute force vs baby-step giant-step."""
 
+import math
 import sys
 import time
 from pathlib import Path
@@ -52,9 +53,22 @@ def brute_dlog(g, h, p):
 
 def bsgs(g, h, p):
     """Return (x, steps) with g^x == h mod p, in about 2*sqrt(p) steps."""
-    # TODO: m = ceil(sqrt(p - 1))
-    #   baby steps: table {g^j: j} for j in 0..m-1
-    #   giant steps: gamma = h, multiply by g^-m each round, look it up
+    m = math.isqrt(p - 1) + 1
+
+    # Baby steps: memorize g^0 .. g^(m-1).
+    table = {}
+    cur = 1
+    for j in range(m):
+        table[cur] = j
+        cur = cur * g % p
+
+    # Giant steps: start at h, jump back m steps each round.
+    back = inverse(power(g, m, p), p)
+    cur = h
+    for i in range(m):
+        if cur in table:
+            return i * m + table[cur], m + i + 1
+        cur = cur * back % p
 
 
 def race(bits):
