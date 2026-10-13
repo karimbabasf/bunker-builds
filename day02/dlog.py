@@ -33,7 +33,12 @@ def find_generator(p):
 
 def dh(p, g, a, b):
     """Alice has a, Bob has b. Return (A, B, shared) where both sides agree."""
-    # TODO: A = g^a, B = g^b, shared from both sides, assert they match
+    A = power(g, a, p)
+    B = power(g, b, p)
+    alice = power(B, a, p)
+    bob = power(A, b, p)
+    assert alice == bob
+    return A, B, alice
 
 
 def brute_dlog(g, h, p):
