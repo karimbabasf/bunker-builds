@@ -25,7 +25,10 @@ BRUTE_MAX_BITS = 28
 
 def find_generator(p):
     """Smallest generator of Z_p* for a safe prime p."""
-    # TODO
+    q = (p - 1) // 2
+    for g in range(2, p):
+        if power(g, 2, p) != 1 and power(g, q, p) != 1:
+            return g
 
 
 def dh(p, g, a, b):
